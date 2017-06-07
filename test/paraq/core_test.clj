@@ -7,8 +7,13 @@
 (def port 3000)
 
 (defn handler [req]
-  {:status 200
-   :body "OK"})
+  (condp = [(:request-method req) (:uri req)]
+    [:get "/get"]
+    {:status 200 :body "get"}
+    [:get "/not_found"]
+    {:status 404 :body "not found"}
+    [:get "/server_error"]
+    {:status 500 :body "server error"}))
 
 (defn start-server []
   (when-not @server
