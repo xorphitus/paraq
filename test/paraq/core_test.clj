@@ -32,3 +32,12 @@
 (deftest a-test
   (testing "FIXME, I fail."
     (is (= 0 1))))
+
+;; 呼び出しイメージ
+(comment
+  (def c (clojure.core.async/chan))
+  (paraq.core/exec ["http://localhost:3000/get" "http://localhost:3000/get"]
+                   c)
+  (clojure.core.async/go
+    (while true
+      (println (clojure.core.async/<! c)))))
