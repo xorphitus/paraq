@@ -2,9 +2,22 @@
   (:require [clojure.core.async :as async]
             [clj-http.client :refer :all]))
 
+(defn fmt [url response]
+  (let [status (:status response)
+        time (:request-time response)]
+    (format "%d,%d,%s" status time url)))
+
 (defn exec [urls chan]
   (with-async-connection-pool {:timeout 5 :threads 4 :insecure? true :default-per-route 10}
     (doseq [url urls]
       (get url {:async? true}
-           (fn [response] (async/put! chan response))
-           (fn [exeption] (async/put! chan exeption))))))
+           (fn [response] (async/put! chan (fmt url response)))
+           (fn [exeption] (async/put! chan (fmt url (.getData exeption))))))))
+
+(defn exec-with-logging [urls]
+  (let [chan (async/chan)]
+    (do
+      (async/thread
+        (while true
+          (println (async/<!! chan))))
+      (exec urls chan))))
