@@ -1,6 +1,6 @@
 (ns paraq.core
   (:require [clojure.core.async :as async]
-            [clj-http.client :refer :all]))
+            [clj-http.client :as client]))
 
 (defn fmt [url response]
   (let [status (:status response)
@@ -8,9 +8,9 @@
     (format "%d,%d,%s" status time url)))
 
 (defn exec [urls chan]
-  (with-async-connection-pool {:timeout 5 :threads 4 :insecure? true :default-per-route 10}
+  (client/with-async-connection-pool {:timeout 5 :threads 4 :insecure? true :default-per-route 10}
     (doseq [url urls]
-      (get url {:async? true}
+      (client/get url {:async? true}
            (fn [response] (async/put! chan (fmt url response)))
            (fn [exeption] (async/put! chan (fmt url (.getData exeption))))))))
 
